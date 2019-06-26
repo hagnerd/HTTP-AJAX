@@ -1,8 +1,10 @@
 import React from "react";
 import axios from "axios";
 import { Route } from "react-router-dom";
+import Navigation from "./components/Navigation";
 import FriendList from "./components/FriendList";
-import "./App.css";
+import Friend from "./components/Friend";
+import NewFriendForm from "./components/NewFriendForm";
 
 class App extends React.Component {
   constructor() {
@@ -19,9 +21,20 @@ class App extends React.Component {
     });
   }
 
+  addNewUser = ({ name, age, email }) => {
+    axios
+      .post("https://localhost:5000/friends", {
+        name,
+        age,
+        email
+      })
+      .then(response => console.log(response));
+  };
+
   render() {
     return (
-      <div>
+      <div className="bg-gray-200 min-h-screen h-full">
+        <Navigation />
 
         <Route
           path="/"
@@ -30,7 +43,18 @@ class App extends React.Component {
             <FriendList {...props} friends={this.state.friends} />
           )}
         />
-
+        <Route path="/new" render={props => <NewFriendForm {...props} />} />
+        <Route
+          path="/friends/:id"
+          render={props => (
+            <Friend
+              {...props}
+              friend={this.state.friends.find(
+                friend => friend.id === props.match.params.id
+              )}
+            />
+          )}
+        />
       </div>
     );
   }
