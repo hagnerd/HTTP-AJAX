@@ -3,12 +3,12 @@ import axios from "axios";
 import { Route } from "react-router-dom";
 import Navigation from "./components/Navigation";
 import FriendList from "./components/FriendList";
-import Friend from "./components/Friend";
-import NewFriendForm from "./components/NewFriendForm";
+import FriendPage from "./components/FriendPage";
+import FriendForm from "./components/FriendForm";
 
 class App extends React.Component {
-  constructor() {
-    super();
+  constructor(props) {
+    super(props);
 
     this.state = {
       friends: []
@@ -21,19 +21,42 @@ class App extends React.Component {
     });
   }
 
-  addNewUser = ({ name, age, email }) => {
+  handleDelete = id => {
     axios
-      .post("https://localhost:5000/friends", {
-        name,
-        age,
-        email
+      .delete(`http://localhost:5000/friends/${id}`)
+      .then(response => {
+        this.setState({
+          friends: response.data
+        });
       })
-      .then(response => console.log(response));
+      .catch(err => {
+        console.log(err);
+      });
+  };
+
+  addNewUser = payload => {
+    axios.post("http://localhost:5000/friends", payload).then(response => {
+      this.setState({
+        friends: response.data
+      });
+    });
+  };
+
+  editUser = (payload, id) => {
+    console.log(id, payload);
+    axios
+      .put(`http://localhost:5000/friends/${id}`, payload)
+      .then(response => {
+        this.setState({
+          friends: response.data
+        });
+      })
+      .catch(err => console.error(err));
   };
 
   render() {
     return (
-      <div className="bg-gray-200 min-h-screen h-full">
+      <div className="bg-gray-200 min-h-screen h-full pb-8">
         <Navigation />
 
         <Route
@@ -43,17 +66,42 @@ class App extends React.Component {
             <FriendList {...props} friends={this.state.friends} />
           )}
         />
-        <Route path="/new" render={props => <NewFriendForm {...props} />} />
         <Route
+          path="/new"
+          render={props => (
+            <FriendForm {...props} handleSubmit={this.addNewUser} />
+          )}
+        />
+
+        <Route
+          exact
           path="/friends/:id"
           render={props => (
-            <Friend
+            <FriendPage
               {...props}
+              handleDelete={this.handleDelete}
               friend={this.state.friends.find(
-                friend => friend.id === props.match.params.id
+                friend => friend.id === Number(props.match.params.id)
               )}
             />
           )}
+        />
+        <Route
+          path="/friends/:id/edit"
+          render={props => {
+            const friend = this.state.friends.find(
+              friend => friend.id === Number(props.match.params.id)
+            );
+
+            return (
+              <FriendForm
+                {...props}
+                submitText="Save"
+                handleSubmit={this.editUser}
+                friend={friend}
+              />
+            );
+          }}
         />
       </div>
     );
