@@ -43,7 +43,6 @@ class App extends React.Component {
   };
 
   editUser = (payload, id) => {
-    console.log(id, payload);
     axios
       .put(`http://localhost:5000/friends/${id}`, payload)
       .then(response => {
